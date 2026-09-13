@@ -60,21 +60,7 @@ Modes are one of BirdSharp's most powerful and unique features. Unlike standard 
     * These manage how an object is compiled into its final executable.
     * They primarily influence the final output file rather than the internal logic representation.
 
-The following sample demonstrates the use of both preprocessor, parsing, and typechecking / revising modes:
-
-```c
-#!include "std.bsh"
-
-#!flat
-#!autovar on
-
-a = 5
-print("Hello World\n")
-print("a = ")
-print(long_to_string(a))
-print("\n")
-return 0
-```
+As of right now, there are some bugs around these modes, as this is an alpha release. These bugs will be fixed.
 
 List of all modes that exist:
 1. **`#!include` (Preprocessor Mode)**
