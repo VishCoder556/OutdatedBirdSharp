@@ -193,17 +193,25 @@ int main(int argc, char **argv){
     Tokenizer *tokenizer = tokenizer_init(input_file, 1);
     while(tokenizer_token(tokenizer) != -1){};
 
+
+
     clockstart("Preprocessor");
     
 
     preprocess(input_file, tokenizer);
 
+
     clockstart("Parsing");
+
+
+
 
     Parser *parser = parse_file(tokenizer);
 
     tokenizer_free_tokens(tokenizer);
     tokenizer_free(tokenizer);
+
+
 
     clockstart("Typechecking");
 
@@ -220,7 +228,7 @@ int main(int argc, char **argv){
 
 
     char cmd[256];
-    snprintf(cmd, sizeof(cmd), "irc %s %s -o %s", generator->output->filename, "-target arm64-mac", output_file);
+    snprintf(cmd, sizeof(cmd), "./irc %s %s -o %s", generator->output->filename, "-target x86_64-mac", output_file);
     system(cmd);
     // snprintf(cmd, sizeof(cmd), "cat %s | pbcopy", generator->output->filename);
     // system(cmd);

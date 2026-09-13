@@ -5,7 +5,7 @@ struct Hello {
     int b
 }
 
-#!define sizeof(struct Hello) = 8;
+#!define sizeof(struct Hello) = 8 #!end
 
 i32 main(i32 argc, char **argv){
     struct Hello* a = cast(struct Hello*, malloc(sizeof(struct Hello)))

@@ -147,6 +147,11 @@ void arm64_close(Compiler *compiler){
     free(compiler->data);
     char string[1024];
     compiler->_o = find_available_tmp_file("o");
+
+
+    snprintf(string, 1024, "cat %s", compiler->_asm);
+    system(string);
+
     // snprintf(string, 100, "bat %s", compiler->_asm);
     // system(string);
     // snprintf(string, 100, "cat %s | pbcopy", compiler->_asm);
@@ -326,8 +331,8 @@ char *arm64_eat_lhs(Compiler *compiler, AST ast, int size){
             return left->data.text.value;
         }else {
             char string[100];
-            compiler_write_text_line(compiler, "add x22, x29, #-%d", left->data.var.offset);
-            snprintf(string, 100, "[x22]");
+            compiler_write_text_line(compiler, "add x11, x29, #-%d", left->data.var.offset);
+            snprintf(string, 100, "[x11]");
             return strdup(string);
         }
     }else if(left->type == AST_REG){

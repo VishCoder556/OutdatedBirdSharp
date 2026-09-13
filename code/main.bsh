@@ -1,5 +1,10 @@
-#!include "std.bsh"
+#!include "../code/std.bsh"
+#!mode.safe
 
 i32 main(i32 argc, char **argv){
-    return 0
+    int[10] a
+    a[9] = 100
+    int b = 100
+// This will return with error code 255, as an invalid bounds check error. Proper error messages aren't in BirdSharp yet.
+    return a[b];
 }

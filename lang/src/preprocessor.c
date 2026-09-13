@@ -51,32 +51,47 @@ void preprocess_substitute(Tokenizer *tokenizer, int *i) {
     }
 }
 
+#define MAX_DEFINES 10
+#define INITIAL_CAPACITY 5
+
 void preprocess_define(Tokenizer *tokenizer, int *i) {
-    if (preprocess_symtab.definelen >= 10) {
+    if (preprocess_symtab.definelen >= MAX_DEFINES) {
         tokenizer_remove_at(tokenizer, *i, 1);
         return;
     }
 
     tokenizer_remove_at(tokenizer, *i, 3);
 
-    if (preprocess_symtab.definelen >= preprocess_symtab.definecap){
-        preprocess_symtab.definecap += 5;
-        preprocess_symtab.defines = realloc(preprocess_symtab.defines, sizeof(Preprocessor_Define) * preprocess_symtab.definecap);
+    if (preprocess_symtab.definelen >= preprocess_symtab.definecap) {
+        int new_cap = preprocess_symtab.definecap + INITIAL_CAPACITY;
+        Preprocessor_Define *new_defines = realloc(
+            preprocess_symtab.defines, 
+            sizeof(Preprocessor_Define) * new_cap
+        );
+        if (!new_defines) return;
+        
+        preprocess_symtab.defines = new_defines;
+        preprocess_symtab.definecap = new_cap;
     }
+
     Preprocessor_Define *def = &preprocess_symtab.defines[preprocess_symtab.definelen];
 
-    int incap = 5;
-    int outcap = 5;
+    int incap = INITIAL_CAPACITY;
+    int outcap = INITIAL_CAPACITY;
+
     def->in = malloc(sizeof(Token) * incap);
     def->out = malloc(sizeof(Token) * outcap);
+    if (!def->in || !def->out) return;
 
     def->inlen = 0;
     def->outlen = 0;
 
     while (*i < tokenizer->tokenlen && tokenizer->tokens[*i].type != TOKEN_EQ) {
-        if (def->inlen >= incap){
-            incap += 5;
-            def->in = realloc(def->in, sizeof(Token) * incap);
+        if (def->inlen >= incap) {
+            incap += INITIAL_CAPACITY;
+            Token *new_in = realloc(def->in, sizeof(Token) * incap);
+            if (!new_in) break;
+            def->in = new_in;
         }
         def->in[def->inlen++] = tokenizer->tokens[*i];
         tokenizer_remove_at(tokenizer, *i, 1);
@@ -91,14 +106,24 @@ void preprocess_define(Tokenizer *tokenizer, int *i) {
         preprocess_substitute(tokenizer, i);
 
         if (start_val == *i) {
-            if (def->outlen >= outcap){
-                outcap += 5;
-                def->out = realloc(def->out, sizeof(Token) * outcap);
+            if (def->outlen >= outcap) {
+                outcap += INITIAL_CAPACITY;
+                Token *new_out = realloc(def->out, sizeof(Token) * outcap);
+                if (!new_out) break;
+                def->out = new_out;
             }
+
             def->out[def->outlen++] = tokenizer->tokens[*i];
-            if (def->outlen >= 3){
-                if (strcmp(def->out[def->outlen-1].value, "end") == 0 && def->out[def->outlen-2].type == TOKEN_EXC && def->out[def->outlen-3].type == TOKEN_HASH) {
-                    fflush(stdout);
+
+            if (def->outlen >= 3) {
+                Token *t1 = &def->out[def->outlen - 3];
+                Token *t2 = &def->out[def->outlen - 2];
+                Token *t3 = &def->out[def->outlen - 1];
+
+                if (t1->type == TOKEN_HASH && 
+                    t2->type == TOKEN_EXC && 
+                    t3->value[0] != '\0' && strcmp(t3->value, "end") == 0) {
+                    
                     tokenizer_remove_at(tokenizer, *i, 1);
                     def->outlen -= 3;
                     break;
@@ -109,7 +134,10 @@ void preprocess_define(Tokenizer *tokenizer, int *i) {
     }
 
     preprocess_symtab.definelen++;
-    *i -= 1;
+    if (*i > 0) {
+        *i -= 1;
+    }
+
 }
 
 void preprocess(char *main_file, Tokenizer *tokenizer);
@@ -144,6 +172,7 @@ char preprocess_include(Tokenizer *tokenizer, char *main_file, int i) {
 }
 
 void preprocess(char *main_file, Tokenizer *tokenizer) {
+
     preprocess_symtab.definecap = 10;
     preprocess_symtab.defines = malloc(sizeof(Preprocessor_Define) * preprocess_symtab.definecap);
     if (!tokenizer || !tokenizer->tokens) return;
@@ -163,6 +192,7 @@ void preprocess(char *main_file, Tokenizer *tokenizer) {
                 }
                 continue;
             } else if (strcmp(tokenizer->tokens[i + 2].value, "define") == 0) {
+
                 preprocess_define(tokenizer, &i);
                 continue;
             }
